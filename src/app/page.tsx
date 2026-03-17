@@ -1,65 +1,215 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useCallback, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import type { UseGraphState } from "@/hooks/useGraphState";
+import type { Node } from "@xyflow/react";
+
+// Dynamically import Graph with SSR disabled — React Flow requires the DOM
+const Graph = dynamic(() => import("@/components/Graph"), { ssr: false });
+
+export default function HomePage() {
+  // Hold a reference to the graph state API once it's ready
+  const graphStateRef = useRef<UseGraphState | null>(null);
+  const [stateReady, setStateReady] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+
+  const handleStateReady = useCallback((state: UseGraphState) => {
+    graphStateRef.current = state;
+    setStateReady(true);
+  }, []);
+
+  // ── Quick-action helpers wired to the state API ─────────────────
+  const handleAddPerson = useCallback(() => {
+    const state = graphStateRef.current;
+    if (!state) return;
+    const id = `person-${Date.now()}`;
+    state.addPersonNode(id, "New Person", "");
+  }, []);
+
+  const handleAddSkill = useCallback(() => {
+    const state = graphStateRef.current;
+    if (!state) return;
+    const id = `skill-${Date.now()}`;
+    state.addSkillNode(id, "New Skill", "");
+  }, []);
+
+  const handleReset = useCallback(() => {
+    graphStateRef.current?.resetGraph();
+    setSelectedNode(null);
+  }, []);
+
+  const handleNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+    setSelectedNode(node);
+  }, []);
+
+  const handlePaneClick = useCallback(() => {
+    setSelectedNode(null);
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="page">
+      {/* Header */}
+      <header className="page__header">
+        <div className="page__header-left">
+          <span className="page__logo">⬡</span>
+          <h1 className="page__title">Team Skill Matrix</h1>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        {/* Quick-action toolbar */}
+        {stateReady && (
+          <div className="toolbar">
+            <button
+              id="btn-add-person"
+              className="toolbar__btn toolbar__btn--indigo"
+              onClick={handleAddPerson}
+            >
+              <span className="toolbar__btn-icon">＋</span> Person
+            </button>
+            <button
+              id="btn-add-skill"
+              className="toolbar__btn toolbar__btn--emerald"
+              onClick={handleAddSkill}
+            >
+              <span className="toolbar__btn-icon">＋</span> New Skill
+            </button>
+            <button
+              id="btn-reset"
+              className="toolbar__btn toolbar__btn--slate"
+              onClick={handleReset}
+            >
+              ↻ Reset
+            </button>
+          </div>
+        )}
+
+        <p className="page__subtitle">
+          Visualize team skills &amp; proficiency at a glance
+        </p>
+      </header>
+
+      {/* Main Content Area */}
+      <div className="page__content">
+        {/* Graph canvas */}
+        <section className="page__graph">
+          <Graph 
+            onStateReady={handleStateReady} 
+            onNodeClick={handleNodeClick}
+            onPaneClick={handlePaneClick}
+          />
+        </section>
+
+        {/* Sidebar Panel for Node Details */}
+        {selectedNode && (
+          <aside className="page__sidebar">
+            <div className="sidebar__header">
+              <h2>Node Details</h2>
+              <button 
+                className="sidebar__close"
+                onClick={handlePaneClick}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="sidebar__content">
+              <div className="sidebar__field">
+                <label>ID</label>
+                <div>{selectedNode.id}</div>
+              </div>
+              <div className="sidebar__field">
+                <label>Type</label>
+                <div className="sidebar__badge">{selectedNode.type}</div>
+              </div>
+              
+              <div className="sidebar__section">
+                <h3>Data</h3>
+                <div className="sidebar__field">
+                  <label>Name</label>
+                  <input
+                    className="sidebar__input"
+                    value={String(selectedNode.data?.label || "")}
+                    onChange={(e) => {
+                      // Update the selectedNode reactively for UI
+                      setSelectedNode((prev) => 
+                        prev ? { ...prev, data: { ...prev.data, label: e.target.value } } : prev
+                      );
+                      // Update main graph state
+                      graphStateRef.current?.updateNodeData(selectedNode.id, { label: e.target.value });
+                    }}
+                  />
+                </div>
+                
+                {selectedNode.type === "person" && !!selectedNode.data?.role && (
+                  <div className="sidebar__field">
+                    <label>Role</label>
+                    <input
+                      className="sidebar__input"
+                      value={String(selectedNode.data.role)}
+                      onChange={(e) => {
+                        setSelectedNode((prev) => 
+                          prev ? { ...prev, data: { ...prev.data, role: e.target.value } } : prev
+                        );
+                        graphStateRef.current?.updateNodeData(selectedNode.id, { role: e.target.value });
+                      }}
+                    />
+                  </div>
+                )}
+                
+                {selectedNode.type === "skill" && !!selectedNode.data?.category && (
+                  <div className="sidebar__field">
+                    <label>Category</label>
+                    <input
+                      className="sidebar__input"
+                      value={String(selectedNode.data.category)}
+                      onChange={(e) => {
+                        setSelectedNode((prev) => 
+                          prev ? { ...prev, data: { ...prev.data, category: e.target.value } } : prev
+                        );
+                        graphStateRef.current?.updateNodeData(selectedNode.id, { category: e.target.value });
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Connected Skills for Person nodes */}
+              {selectedNode.type === "person" && (
+                <div className="sidebar__section">
+                  <h3>Connected Skills</h3>
+                  {(() => {
+                    const edges = graphStateRef.current?.edges || [];
+                    const nodes = graphStateRef.current?.nodes || [];
+                    
+                    const personEdges = edges.filter(e => e.source === selectedNode.id);
+                    if (personEdges.length === 0) {
+                      return <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>No skills connected.</div>;
+                    }
+
+                    return (
+                      <ul style={{ display: 'flex', flexDirection: 'column', gap: '8px', listStyle: 'none', padding: 0 }}>
+                        {personEdges.map(edge => {
+                          const skillNode = nodes.find(n => n.id === edge.target);
+                          const skillName = skillNode?.data?.label || "Unknown Skill";
+                          const proficiency = edge.data?.proficiency || edge.label || "familiar";
+                          return (
+                            <li key={edge.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
+                              <span>{String(skillName)}</span>
+                              <span className={`sidebar__badge ${proficiency === 'expert' ? 'sidebar__badge--green' : ''}`}>
+                                {String(proficiency)}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+          </aside>
+        )}
+      </div>
+    </main>
   );
 }

@@ -1,26 +1,563 @@
 @import "tailwindcss";
 
+/* ================================================================
+   GLOBALS & RESETS
+   ================================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-card: #1e293b;
+  --border-subtle: rgba(148, 163, 184, 0.15);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --accent-indigo: #818cf8;
+  --accent-emerald: #34d399;
+  --accent-amber: #fbbf24;
+  --accent-sky: #38bdf8;
+  --font-inter: "Inter", system-ui, -apple-system, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html,
+body {
+  height: 100%;
+  font-family: var(--font-inter);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+/* ================================================================
+   PAGE LAYOUT
+   ================================================================ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* ─── Header ─────────────────────────────────────────────────────── */
+
+.page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.95),
+    rgba(15, 23, 42, 0.98)
+  );
+  border-bottom: 1px solid var(--border-subtle);
+  backdrop-filter: blur(12px);
+  z-index: 10;
+}
+
+.page__header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page__logo {
+  font-size: 1.6rem;
+  color: var(--accent-indigo);
+  filter: drop-shadow(0 0 6px rgba(129, 140, 248, 0.4));
+}
+
+.page__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent-indigo), var(--accent-emerald));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
+}
+
+.page__subtitle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+/* ─── Toolbar ────────────────────────────────────────────────────── */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar__btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-inter);
+}
+
+.toolbar__btn-icon {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.toolbar__btn--indigo {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-indigo);
+  border-color: rgba(129, 140, 248, 0.3);
+}
+
+.toolbar__btn--indigo:hover {
+  background: rgba(99, 102, 241, 0.28);
+  border-color: rgba(129, 140, 248, 0.5);
+  box-shadow: 0 0 12px rgba(129, 140, 248, 0.15);
+}
+
+.toolbar__btn--emerald {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--accent-emerald);
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+.toolbar__btn--emerald:hover {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: rgba(52, 211, 153, 0.5);
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.15);
+}
+
+.toolbar__btn--slate {
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--text-secondary);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+.toolbar__btn--slate:hover {
+  background: rgba(148, 163, 184, 0.18);
+  color: var(--text-primary);
+}
+
+.toolbar__btn:active {
+  transform: scale(0.96);
+}
+
+/* ─── Main Content Area (Graph + Sidebar) ───────────────────────── */
+
+.page__content {
+  display: flex;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ─── Graph Section ──────────────────────────────────────────────── */
+
+.page__graph {
+  flex: 1;
+  position: relative;
+  height: 100%;
+}
+
+/* ─── Sidebar Section ────────────────────────────────────────────── */
+
+.page__sidebar {
+  width: 320px;
+  background: var(--bg-card);
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 20;
+  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.2);
+  animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(15, 23, 42, 0.3);
+}
+
+.sidebar__header h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sidebar__close {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.sidebar__close:hover {
+  color: var(--text-primary);
+}
+
+.sidebar__content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sidebar__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(148, 163, 184, 0.1);
+}
+
+.sidebar__section h3 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.sidebar__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar__field label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.sidebar__field div {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.sidebar__input {
+  width: 100%;
+  padding: 8px 10px;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  outline: none;
+}
+
+.sidebar__input:focus {
+  border-color: var(--accent-indigo);
+}
+
+.sidebar__badge {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 4px 10px;
+  background: rgba(129, 140, 248, 0.15);
+  color: var(--accent-indigo);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.sidebar__badge--green {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-emerald);
+}
+
+/* ================================================================
+   GRAPH CONTAINER  (wraps <ReactFlow>)
+   ================================================================ */
+
+.graph-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: var(--bg-primary);
+}
+
+/* ─── Controls override ──────────────────────────────────────────── */
+
+.graph-controls {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+.graph-controls button {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  fill: var(--text-primary) !important;
+}
+
+.graph-controls button:hover {
+  background: rgba(129, 140, 248, 0.15) !important;
+}
+
+.graph-controls button svg {
+  fill: var(--text-primary) !important;
+}
+
+/* ─── Minimap override ───────────────────────────────────────────── */
+
+.graph-minimap {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ─── Floating Legend ────────────────────────────────────────────── */
+
+.graph-legend {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 5;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.graph-legend__title {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.graph-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+}
+
+.graph-legend__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* ================================================================
+   CUSTOM NODES — PERSON
+   ================================================================ */
+
+.person-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 28px;
+  background: linear-gradient(
+    145deg,
+    rgba(99, 102, 241, 0.15),
+    rgba(129, 140, 248, 0.08)
+  );
+  border: 1px solid rgba(129, 140, 248, 0.3);
+  border-radius: 16px;
+  box-shadow:
+    0 0 20px rgba(129, 140, 248, 0.08),
+    0 8px 24px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: grab;
+  min-width: 120px;
+}
+
+.person-node:hover {
+  border-color: rgba(129, 140, 248, 0.55);
+  box-shadow:
+    0 0 28px rgba(129, 140, 248, 0.18),
+    0 12px 32px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.person-node__avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+}
+
+.person-node__label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.person-node__role {
+  font-size: 0.65rem;
+  color: var(--accent-indigo);
+  background: rgba(129, 140, 248, 0.12);
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.person-node__handle {
+  width: 8px !important;
+  height: 8px !important;
+  background: var(--accent-indigo) !important;
+  border: 2px solid var(--bg-primary) !important;
+}
+
+/* ================================================================
+   CUSTOM NODES — SKILL
+   ================================================================ */
+
+.skill-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 28px;
+  background: linear-gradient(
+    145deg,
+    rgba(52, 211, 153, 0.12),
+    rgba(16, 185, 129, 0.06)
+  );
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 16px;
+  box-shadow:
+    0 0 20px rgba(52, 211, 153, 0.06),
+    0 8px 24px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: grab;
+  min-width: 120px;
+}
+
+.skill-node:hover {
+  border-color: rgba(52, 211, 153, 0.55);
+  box-shadow:
+    0 0 28px rgba(52, 211, 153, 0.15),
+    0 12px 32px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.skill-node__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #059669, #34d399);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.skill-node__label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.skill-node__category {
+  font-size: 0.65rem;
+  color: var(--accent-emerald);
+  background: rgba(52, 211, 153, 0.12);
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.skill-node__handle {
+  width: 8px !important;
+  height: 8px !important;
+  background: var(--accent-emerald) !important;
+  border: 2px solid var(--bg-primary) !important;
+}
+
+/* ================================================================
+   EDGE LABELS (React Flow default)
+   ================================================================ */
+
+.react-flow__edge-text {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  fill: var(--text-secondary) !important;
+}
+
+.react-flow__edge-textbg {
+  fill: var(--bg-secondary) !important;
+  rx: 6 !important;
+  ry: 6 !important;
+  stroke: var(--border-subtle) !important;
+  stroke-width: 1 !important;
+}
+
+/* ================================================================
+   REACT FLOW PANE OVERRIDES
+   ================================================================ */
+
+.react-flow__pane {
+  cursor: grab !important;
+}
+
+.react-flow__pane:active {
+  cursor: grabbing !important;
+}
+
+/* Selection box */
+.react-flow__selection {
+  background: rgba(129, 140, 248, 0.08) !important;
+  border: 1px dashed rgba(129, 140, 248, 0.4) !important;
 }
