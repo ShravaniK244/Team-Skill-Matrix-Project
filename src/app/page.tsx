@@ -34,14 +34,32 @@ export default function HomePage() {
     state.addSkillNode(id, "New Skill", "");
   }, []);
 
+  const handleSave = useCallback(() => {
+    const state = graphStateRef.current;
+    if (!state) return;
+    localStorage.setItem("graph-nodes", JSON.stringify(state.nodes));
+    localStorage.setItem("graph-edges", JSON.stringify(state.edges));
+    alert("Graph data successfully saved!");
+  }, []);
+
   const handleReset = useCallback(() => {
-    graphStateRef.current?.resetGraph();
-    setSelectedNode(null);
+    if (confirm("Are you sure you want to reset the graph to seed data? Unsaved changes will be lost.")) {
+      graphStateRef.current?.resetGraph();
+      setSelectedNode(null);
+    }
   }, []);
 
   const handleNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
   }, []);
+
+  const handleDeleteNode = useCallback(() => {
+    if (!selectedNode || !graphStateRef.current) return;
+    if (confirm(`Are you sure you want to delete "${selectedNode.data.label}"? This will also remove all its connections.`)) {
+      graphStateRef.current.removeNode(selectedNode.id);
+      setSelectedNode(null);
+    }
+  }, [selectedNode]);
 
   const handlePaneClick = useCallback(() => {
     setSelectedNode(null);
@@ -72,6 +90,13 @@ export default function HomePage() {
               onClick={handleAddSkill}
             >
               <span className="toolbar__btn-icon">＋</span> New Skill
+            </button>
+            <button
+              id="btn-save"
+              className="toolbar__btn toolbar__btn--sky"
+              onClick={handleSave}
+            >
+              <span className="toolbar__btn-icon">💾</span> Save
             </button>
             <button
               id="btn-reset"
@@ -206,6 +231,22 @@ export default function HomePage() {
                   })()}
                 </div>
               )}
+
+              {/* Sidebar Actions */}
+              <div className="sidebar__section border-t border-slate-700/50 mt-6 pt-6 flex flex-col gap-3">
+                <button
+                  onClick={handleSave}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-lg shadow-lg shadow-emerald-900/40 transition-all flex items-center justify-center gap-2 border-none"
+                >
+                  <span className="text-lg">💾</span> Save Graph
+                </button>
+                <button
+                  onClick={handleDeleteNode}
+                  className="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 px-4 rounded-lg shadow-lg shadow-red-900/40 transition-all flex items-center justify-center gap-2 border-none"
+                >
+                  <span className="text-lg">🗑</span> Delete Node
+                </button>
+              </div>
             </div>
           </aside>
         )}
